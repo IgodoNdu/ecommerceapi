@@ -41,9 +41,20 @@ router.post('/login', async (req,res)=>{
         //now compare with user submitted password
         dbpassword !== req.body.password && res.status(401).json('Wroong details!!!');
 
+        //securing with JWT: (sign on user._id and user.isAdmin props)
+        const accessToken = jwt.sign(
+            {
+                id: user._id,
+                isAdmin: user.isAdmin,
+            },
+            process.env.JWT_KEY,
+            //expiration tenure, after which user login is required
+            {expiresIn:'2d'}
+        )
+
         //if everything's okay, send back everything excluding the password (maka security)
         const { password, ...others } = user._doc;
-        res.status(200).json(others);
+        res.status(200).json({ ...others, accessToken });
         console.log('hello!!')
     } catch (error) {
         res.status(500).json(error);
